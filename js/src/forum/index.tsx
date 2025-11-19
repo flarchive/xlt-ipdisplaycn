@@ -1,0 +1,32 @@
+/*
+ * This file is part of GBCLStudio Project.
+ *
+ * Copyright (c) 2023 GBCLStudio PHP Project Team.
+ *
+ * For the full copyright and license information, please view the LICENSE.md
+ * file that was distributed with this source code.
+ */
+
+import app from 'flarum/forum/app'
+import { extend } from 'flarum/common/extend'
+import CommentPost from 'flarum/forum/components/CommentPost'
+import Model from 'flarum/common/Model'
+import ProcessData from './ProcessData'
+import GeoIpToolBar from './components/GeoIpToolBar'
+
+// still learning
+export { default as extend } from './extend'
+
+app.initializers.add('xlt/ipdisplaycn', () => {
+  const errorNotice = app.translator.trans('xlt-ipdisplaycn.forum.unknownNotice')
+
+  app.store.models.posts.prototype.userIpInfo = Model.hasOne('userip_info')
+
+  extend(CommentPost.prototype, 'footerItems', function (items) {
+    const ipInfo = this.attrs.post.userIpInfo()
+    if (!ipInfo) return
+
+    const result = new ProcessData(ipInfo).process(errorNotice)
+    result && items.add('userIp', <GeoIpToolBar elements={result} />)
+  })
+})
